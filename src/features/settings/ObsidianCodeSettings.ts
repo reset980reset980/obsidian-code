@@ -42,7 +42,7 @@ function openHotkeySettings(app: App): void {
       // Handle both old and new Obsidian versions
       const searchEl = tab.searchInputEl ?? tab.searchComponent?.inputEl;
       if (searchEl) {
-        searchEl.value = 'Obsidian Code';
+        searchEl.value = 'Claude Code for Windows';
         tab.updateHotkeyVisibility?.();
       }
     }
@@ -369,7 +369,7 @@ export class ObsidianCodeSettingTab extends PluginSettingTab {
     // Hotkeys section
     new Setting(containerEl).setName('Hotkeys').setHeading();
 
-    const inlineEditCommandId = 'cc-obsidian:inline-edit';
+    const inlineEditCommandId = 'claude-code-win:inline-edit';
     const inlineEditHotkey = getHotkeyForCommand(this.app, inlineEditCommandId);
     new Setting(containerEl)
       .setName('Inline edit hotkey')
@@ -382,7 +382,7 @@ export class ObsidianCodeSettingTab extends PluginSettingTab {
           .onClick(() => openHotkeySettings(this.app))
       );
 
-    const openChatCommandId = 'cc-obsidian:open-view';
+    const openChatCommandId = 'claude-code-win:open-view';
     const openChatHotkey = getHotkeyForCommand(this.app, openChatCommandId);
     new Setting(containerEl)
       .setName('Open chat hotkey')

@@ -1,7 +1,7 @@
 {
-  "name": "cc-obsidian",
+  "name": "claude-code-win",
   "version": "1.4.19",
-  "description": "ObsidianCode - Claude Code embedded in Obsidian sidebar",
+  "description": "Windows-first Claude Code sidebar plugin for Obsidian",
   "main": "main.js",
   "scripts": {
     "build:css": "node scripts/build-css.mjs",
@@ -21,7 +21,7 @@
     "ai",
     "agent"
   ],
-  "author": "reallygood83",
+  "author": "reset980reset980",
   "license": "MIT",
   "devDependencies": {
     "@types/jest": "^30.0.0",

@@ -9,6 +9,29 @@ import type { App } from 'obsidian';
 import * as os from 'os';
 import * as path from 'path';
 
+function getTargetPathApi(isWindows = process.platform === 'win32'): typeof path.posix | typeof path.win32 {
+  return isWindows ? path.win32 : path.posix;
+}
+
+function looksLikeWindowsPath(value: string): boolean {
+  return /^[A-Za-z]:[\\/]/.test(value) || value.startsWith('\\\\');
+}
+
+function usesPosixSeparators(value: string): boolean {
+  return value.includes('/') && !value.includes('\\');
+}
+
+/**
+ * Join paths while preserving the style implied by the base path.
+ * This avoids host-OS path separators leaking into logical Windows/Unix path handling.
+ */
+export function joinPath(basePath: string, ...segments: string[]): string {
+  const pathApi = looksLikeWindowsPath(basePath) || (!usesPosixSeparators(basePath) && process.platform === 'win32')
+    ? path.win32
+    : path.posix;
+  return pathApi.join(basePath, ...segments);
+}
+
 // ============================================
 // Vault Path
 // ============================================
@@ -101,14 +124,15 @@ function expandEnvironmentVariables(value: string): string {
  */
 export function expandHomePath(p: string): string {
   const expanded = expandEnvironmentVariables(p);
+  const pathApi = getTargetPathApi();
   if (expanded === '~') {
     return os.homedir();
   }
   if (expanded.startsWith('~/')) {
-    return path.join(os.homedir(), expanded.slice(2));
+    return pathApi.join(os.homedir(), expanded.slice(2));
   }
   if (expanded.startsWith('~\\')) {
-    return path.join(os.homedir(), expanded.slice(2));
+    return pathApi.join(os.homedir(), expanded.slice(2));
   }
   return expanded;
 }
@@ -159,10 +183,11 @@ function dedupePaths(entries: string[]): string[] {
 }
 
 function findFirstExistingPath(entries: string[], candidates: string[]): string | null {
+  const pathApi = getTargetPathApi();
   for (const dir of entries) {
     if (!dir) continue;
     for (const candidate of candidates) {
-      const fullPath = path.join(dir, candidate);
+      const fullPath = pathApi.join(dir, candidate);
       if (isExistingFile(fullPath)) {
         return fullPath;
       }
@@ -184,17 +209,18 @@ function isExistingFile(filePath: string): boolean {
 }
 
 function resolveCliJsNearPathEntry(entry: string, isWindows: boolean): string | null {
-  const directCandidate = path.join(entry, 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js');
+  const pathApi = getTargetPathApi(isWindows);
+  const directCandidate = pathApi.join(entry, 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js');
   if (isExistingFile(directCandidate)) {
     return directCandidate;
   }
 
-  const baseName = path.basename(entry).toLowerCase();
+  const baseName = pathApi.basename(entry).toLowerCase();
   if (baseName === 'bin') {
-    const prefix = path.dirname(entry);
+    const prefix = pathApi.dirname(entry);
     const candidate = isWindows
-      ? path.join(prefix, 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js')
-      : path.join(prefix, 'lib', 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js');
+      ? pathApi.join(prefix, 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js')
+      : pathApi.join(prefix, 'lib', 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js');
     if (isExistingFile(candidate)) {
       return candidate;
     }
@@ -254,7 +280,7 @@ function getNpmGlobalPrefix(): string | null {
     // Custom npm global paths are often configured via npm config
     // Check %APPDATA%\npm first (default Windows npm global)
     const appDataNpm = process.env.APPDATA
-      ? path.join(process.env.APPDATA, 'npm')
+      ? path.win32.join(process.env.APPDATA, 'npm')
       : null;
     if (appDataNpm && fs.existsSync(appDataNpm)) {
       return appDataNpm;
@@ -270,19 +296,20 @@ function getNpmGlobalPrefix(): string | null {
 function getNpmCliJsPaths(): string[] {
   const homeDir = os.homedir();
   const isWindows = process.platform === 'win32';
+  const pathApi = getTargetPathApi(isWindows);
   const cliJsPaths: string[] = [];
 
   if (isWindows) {
     // Default npm global path on Windows
     cliJsPaths.push(
-      path.join(homeDir, 'AppData', 'Roaming', 'npm', 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js')
+      pathApi.join(homeDir, 'AppData', 'Roaming', 'npm', 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js')
     );
 
     // npm prefix from environment/config
     const npmPrefix = getNpmGlobalPrefix();
     if (npmPrefix) {
       cliJsPaths.push(
-        path.join(npmPrefix, 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js')
+        pathApi.join(npmPrefix, 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js')
       );
     }
 
@@ -292,13 +319,13 @@ function getNpmCliJsPaths(): string[] {
 
     // Check common nodejs installation paths with custom npm global
     cliJsPaths.push(
-      path.join(programFiles, 'nodejs', 'node_global', 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js'),
-      path.join(programFilesX86, 'nodejs', 'node_global', 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js')
+      pathApi.join(programFiles, 'nodejs', 'node_global', 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js'),
+      pathApi.join(programFilesX86, 'nodejs', 'node_global', 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js')
     );
 
     // Also check D: drive which is commonly used for custom installations
     cliJsPaths.push(
-      path.join('D:', 'Program Files', 'nodejs', 'node_global', 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js')
+      pathApi.join('D:', 'Program Files', 'nodejs', 'node_global', 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js')
     );
   } else {
     // Unix/macOS npm global paths
@@ -311,7 +338,7 @@ function getNpmCliJsPaths(): string[] {
     // Check npm_config_prefix for custom npm global paths on Unix
     if (process.env.npm_config_prefix) {
       cliJsPaths.push(
-        path.join(process.env.npm_config_prefix, 'lib', 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js')
+        pathApi.join(process.env.npm_config_prefix, 'lib', 'node_modules', '@anthropic-ai', 'claude-code', 'cli.js')
       );
     }
   }
@@ -323,6 +350,7 @@ function getNpmCliJsPaths(): string[] {
 export function findClaudeCLIPath(pathValue?: string): string | null {
   const homeDir = os.homedir();
   const isWindows = process.platform === 'win32';
+  const pathApi = getTargetPathApi(isWindows);
 
   const customEntries = dedupePaths(parsePathEntries(pathValue));
 
@@ -337,11 +365,11 @@ export function findClaudeCLIPath(pathValue?: string): string | null {
   // because it requires shell: true and breaks SDK stdio streaming.
   if (isWindows) {
     const exePaths: string[] = [
-      path.join(homeDir, '.claude', 'local', 'claude.exe'),
-      path.join(homeDir, 'AppData', 'Local', 'Claude', 'claude.exe'),
-      path.join(process.env.ProgramFiles || 'C:\\Program Files', 'Claude', 'claude.exe'),
-      path.join(process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)', 'Claude', 'claude.exe'),
-      path.join(homeDir, '.local', 'bin', 'claude.exe'),
+      pathApi.join(homeDir, '.claude', 'local', 'claude.exe'),
+      pathApi.join(homeDir, 'AppData', 'Local', 'Claude', 'claude.exe'),
+      pathApi.join(process.env.ProgramFiles || 'C:\\Program Files', 'Claude', 'claude.exe'),
+      pathApi.join(process.env['ProgramFiles(x86)'] || 'C:\\Program Files (x86)', 'Claude', 'claude.exe'),
+      pathApi.join(homeDir, '.local', 'bin', 'claude.exe'),
     ];
 
     for (const p of exePaths) {
@@ -362,22 +390,22 @@ export function findClaudeCLIPath(pathValue?: string): string | null {
   // Platform-specific search paths for native binaries and npm symlinks
   const commonPaths: string[] = [
     // Native binary paths (preferred)
-    path.join(homeDir, '.claude', 'local', 'claude'),
-    path.join(homeDir, '.local', 'bin', 'claude'),
-    path.join(homeDir, '.volta', 'bin', 'claude'),
-    path.join(homeDir, '.asdf', 'shims', 'claude'),
-    path.join(homeDir, '.asdf', 'bin', 'claude'),
+    pathApi.join(homeDir, '.claude', 'local', 'claude'),
+    pathApi.join(homeDir, '.local', 'bin', 'claude'),
+    pathApi.join(homeDir, '.volta', 'bin', 'claude'),
+    pathApi.join(homeDir, '.asdf', 'shims', 'claude'),
+    pathApi.join(homeDir, '.asdf', 'bin', 'claude'),
     '/usr/local/bin/claude',
     '/opt/homebrew/bin/claude',
-    path.join(homeDir, 'bin', 'claude'),
+    pathApi.join(homeDir, 'bin', 'claude'),
     // npm global bin symlinks (created by npm install -g)
-    path.join(homeDir, '.npm-global', 'bin', 'claude'),
+    pathApi.join(homeDir, '.npm-global', 'bin', 'claude'),
   ];
 
   // Also check npm prefix bin directory
   const npmPrefix = getNpmGlobalPrefix();
   if (npmPrefix) {
-    commonPaths.push(path.join(npmPrefix, 'bin', 'claude'));
+    commonPaths.push(pathApi.join(npmPrefix, 'bin', 'claude'));
   }
 
   for (const p of commonPaths) {

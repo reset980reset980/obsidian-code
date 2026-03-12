@@ -2204,7 +2204,8 @@ describe('ObsidianCodeService', () => {
         warnSpy.mockRestore();
       }
 
-      expect(resolveImageFilePath('/abs.png', '/test/vault')).toBe('/abs.png');
+      const expectedAbsolute = process.platform === 'win32' ? '\\abs.png' : '/abs.png';
+      expect(resolveImageFilePath('/abs.png', '/test/vault')).toBe(expectedAbsolute);
       expect(resolveImageFilePath('rel.png', null)).toBeNull();
     });
 

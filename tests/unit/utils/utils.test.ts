@@ -285,9 +285,12 @@ describe('utils.ts', () => {
       const envKey = 'OBSIDIAN_CODE_FS_TEST_PATH';
       const originalValue = process.env[envKey];
       process.env[envKey] = '/tmp/oc-test';
+      const expected = process.platform === 'win32'
+        ? '\\tmp\\oc-test\\notes\\file.md'
+        : '/tmp/oc-test/notes/file.md';
 
       try {
-        expect(normalizePathForFilesystem(`$${envKey}/notes/file.md`)).toBe('/tmp/oc-test/notes/file.md');
+        expect(normalizePathForFilesystem(`$${envKey}/notes/file.md`)).toBe(expected);
       } finally {
         if (originalValue === undefined) {
           delete process.env[envKey];
@@ -314,8 +317,10 @@ describe('utils.ts', () => {
 
     it('handles non-existent environment variables', () => {
       // Non-existent env vars should be left as-is
-      expect(normalizePathForFilesystem('$NONEXISTENT/path')).toBe('$NONEXISTENT/path');
-      expect(normalizePathForFilesystem('%NONEXISTENT%/path')).toBe('%NONEXISTENT%/path');
+      const expectedDollar = process.platform === 'win32' ? '$NONEXISTENT\\path' : '$NONEXISTENT/path';
+      const expectedPercent = process.platform === 'win32' ? '%NONEXISTENT%\\path' : '%NONEXISTENT%/path';
+      expect(normalizePathForFilesystem('$NONEXISTENT/path')).toBe(expectedDollar);
+      expect(normalizePathForFilesystem('%NONEXISTENT%/path')).toBe(expectedPercent);
     });
 
     it('handles mixed path separators', () => {

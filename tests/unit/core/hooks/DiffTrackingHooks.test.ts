@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as os from 'os';
+import * as path from 'path';
 
 import { createFileHashPostHook, createFileHashPreHook } from '@/core/hooks/DiffTrackingHooks';
 
@@ -25,6 +26,9 @@ describe('DiffTrackingHooks path normalization', () => {
     const homedirSpy = jest.spyOn(os, 'homedir').mockReturnValue('/home/test');
     const originalContents = new Map();
     const hook = createFileHashPreHook(vaultPath, originalContents);
+    const expected = process.platform === 'win32'
+      ? '\\home\\test\\notes\\a.md'
+      : path.posix.join('/home/test', 'notes/a.md');
 
     await hook.hooks[0](
       {
@@ -39,7 +43,7 @@ describe('DiffTrackingHooks path normalization', () => {
       { signal: new AbortController().signal }
     );
 
-    expect(existsSpy).toHaveBeenCalledWith('/home/test/notes/a.md');
+    expect(existsSpy).toHaveBeenCalledWith(expected);
     homedirSpy.mockRestore();
   });
 
@@ -54,6 +58,9 @@ describe('DiffTrackingHooks path normalization', () => {
     originalContents.set('tool-2', { filePath: `$${envKey}/notes/a.md`, content: 'old' });
     const pendingDiffData = new Map();
     const hook = createFileHashPostHook(vaultPath, originalContents, pendingDiffData);
+    const expected = process.platform === 'win32'
+      ? '\\tmp\\obsidian-code\\notes\\a.md'
+      : '/tmp/obsidian-code/notes/a.md';
 
     await hook.hooks[0](
       {
@@ -69,7 +76,7 @@ describe('DiffTrackingHooks path normalization', () => {
       { signal: new AbortController().signal }
     );
 
-    expect(existsSpy).toHaveBeenCalledWith('/tmp/obsidian-code/notes/a.md');
+    expect(existsSpy).toHaveBeenCalledWith(expected);
     expect(pendingDiffData.get('tool-2')).toEqual({
       filePath: `$${envKey}/notes/a.md`,
       originalContent: 'old',

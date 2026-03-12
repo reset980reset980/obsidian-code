@@ -40,8 +40,8 @@ describe('ObsidianCodePlugin', () => {
     };
 
     mockManifest = {
-      id: 'cc-obsidian',
-      name: 'ObsidianCode',
+      id: 'claude-code-win',
+      name: 'Claude Code for Windows',
       version: '0.1.0',
     };
 
@@ -79,7 +79,7 @@ describe('ObsidianCodePlugin', () => {
 
       expect((plugin.addRibbonIcon as jest.Mock)).toHaveBeenCalledWith(
         'bot',
-        'Open cc-obsidian',
+        'Open Claude Code for Windows',
         expect.any(Function)
       );
     });

@@ -1,17 +1,17 @@
-# Obsidian Code
+# Claude Code for Windows
 
 [![YouTube](https://img.shields.io/badge/YouTube-배움의달인-red?style=for-the-badge&logo=youtube)](https://www.youtube.com/@%EB%B0%B0%EC%9B%80%EC%9D%98%EB%8B%AC%EC%9D%B8-p5v)
 [![X Follow](https://img.shields.io/badge/X-@reallygood83-black?style=for-the-badge&logo=x)](https://x.com/reallygood83)
 [![GitHub](https://img.shields.io/badge/GitHub-reallygood83-blue?style=for-the-badge&logo=github)](https://github.com/reallygood83)
 
 옵시디언(Obsidian)을 사용하면서 "이 내용을 좀 정리해줘" 혹은 "이 파일을 수정해줘"라고 말만 하면 알아서 해주는 비서가 있다면 얼마나 좋을까요?  
-**Obsidian Code**는 바로 그런 역할을 합니다. 옵시디언 사이드바에서 클로드(Claude)와 대화하며, 클로드가 여러분의 노트를 직접 읽고, 쓰고, 명령어도 실행하게 만드는 강력한 플러그인입니다.
+**Claude Code for Windows**는 바로 그런 역할을 합니다. 옵시디언 사이드바에서 클로드(Claude)와 대화하며, 클로드가 여러분의 노트를 직접 읽고, 쓰고, 명령어도 실행하게 만드는 강력한 플러그인입니다.
 
 단순히 질문에 대답만 하는 챗봇이 아닙니다. 여러분의 '디지털 정원(Vault)'을 관리하는 똑똑한 정원사라고 생각해보세요.
 
 ---
 
-## 🌟 Obsidian Code만의 특별한 기능
+## 🌟 Claude Code for Windows만의 특별한 기능
 
 ### 📌 스마트 노트 핀 기능
 여러 노트를 참고하면서 작업할 때 불편하셨나요? 이제 노트를 **핀(고정)**하면 다른 노트를 열어봐도 첨부된 노트가 바뀌지 않습니다!
@@ -29,7 +29,7 @@
 Claude가 Obsidian 문법을 완벽히 이해하도록 도와주는 **Skills**를 원클릭으로 설치할 수 있습니다!
 
 **설치 방법:**
-1. 플러그인 설정 열기 (설정 → Obsidian Code)
+1. 플러그인 설정 열기 (설정 → Claude Code for Windows)
 2. **Obsidian Skills** 섹션으로 스크롤
 3. **Install Skills** 버튼 클릭
 
@@ -47,7 +47,7 @@ Skills가 설치되면 Claude가 다음을 더 잘 이해합니다:
 ### 🌐 GitHub에서 Community Skills 설치
 전 세계 사용자들이 만든 다양한 Claude Code Skills를 설치하여 기능을 확장하세요!
 
-1. **설정 → Obsidian Code → Install Skill from GitHub**
+1. **설정 → Claude Code for Windows → Install Skill from GitHub**
 2. GitHub 저장소 URL 또는 `SKILL.md` 파일 URL 입력
    - 예: `https://github.com/username/awesome-skill`
 3. **Install** 버튼 클릭
@@ -104,10 +104,10 @@ Skills가 설치되면 Claude가 다음을 더 잘 이해합니다:
     *   `BRAT: Add a beta plugin for testing`을 입력하고 선택합니다.
 3.  **주소 입력**: 
     *   URL 입력창에 다음 주소를 복사해서 붙여넣습니다:
-    *   `https://github.com/reallygood83/cc-obsidian`
+    *   `https://github.com/reset980reset980/obsidian-code`
 4.  **활성화**: 
     *   설치가 완료되면 알림이 뜹니다.
-    *   **설정(Settings) → 커뮤니티 플러그인(Community plugins)** 목록으로 가서 "Obsidian Code"를 찾아 켜주세요(Enable).
+    *   **설정(Settings) → 커뮤니티 플러그인(Community plugins)** 목록으로 가서 "Claude Code for Windows"를 찾아 켜주세요(Enable).
 
 ### 방법 2: 개발자용 설치 (직접 빌드)
 
@@ -116,8 +116,8 @@ Skills가 설치되면 Claude가 다음을 더 잘 이해합니다:
 1.  터미널을 열고 플러그인 폴더로 이동합니다.
     ```bash
     cd /path/to/vault/.obsidian/plugins
-    git clone https://github.com/reallygood83/cc-obsidian.git
-    cd cc-obsidian
+    git clone https://github.com/reset980reset980/obsidian-code.git
+    cd obsidian-code
     ```
 2.  필요한 도구를 설치하고 빌드합니다.
     ```bash

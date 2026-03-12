@@ -8,7 +8,7 @@ import type { HookCallbackMatcher } from '@anthropic-ai/claude-agent-sdk';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { normalizePathForFilesystem } from '../../utils/path';
+import { joinPath, normalizePathForFilesystem } from '../../utils/path';
 import { TOOL_EDIT, TOOL_WRITE } from '../tools/toolNames';
 import type { ToolDiffData } from '../types';
 
@@ -58,7 +58,7 @@ export function createFileHashPreHook(
             const normalizedPath = normalizePathForFilesystem(filePath);
             const fullPath = path.isAbsolute(normalizedPath)
               ? normalizedPath
-              : path.join(vaultPath, normalizedPath);
+              : joinPath(vaultPath, normalizedPath);
 
             try {
               if (fs.existsSync(fullPath)) {
@@ -118,7 +118,7 @@ export function createFileHashPostHook(
             const normalizedPath = normalizePathForFilesystem(filePath);
             const fullPath = path.isAbsolute(normalizedPath)
               ? normalizedPath
-              : path.join(vaultPath, normalizedPath);
+              : joinPath(vaultPath, normalizedPath);
 
             let diffData: ToolDiffData | undefined;
 

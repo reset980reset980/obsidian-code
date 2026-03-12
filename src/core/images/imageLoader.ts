@@ -8,7 +8,7 @@ import * as fs from 'fs';
 import type { App } from 'obsidian';
 import * as path from 'path';
 
-import { getVaultPath, normalizePathForFilesystem } from '../../utils/path';
+import { getVaultPath, joinPath, normalizePathForFilesystem } from '../../utils/path';
 import type { ImageAttachment } from '../types';
 import { readCachedImageBase64 } from './imageCache';
 
@@ -18,7 +18,7 @@ export function resolveImageFilePath(filePath: string, vaultPath: string | null)
     return normalized;
   }
   if (vaultPath) {
-    return path.join(vaultPath, normalized);
+    return joinPath(vaultPath, normalized);
   }
   return null;
 }

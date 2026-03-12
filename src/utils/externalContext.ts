@@ -20,12 +20,24 @@ export interface PathConflict {
  * - Trailing slash removed
  */
 export function normalizePathForComparison(p: string): string {
+  if (p.startsWith('/') && !p.includes('\\') && !/^\/[A-Za-z](?:\/|$)/.test(p)) {
+    const normalized = p.replace(/\\/g, '/').replace(/\/+$/, '');
+    return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
+  }
   return normalizePathForComparisonImpl(p);
 }
 
 function normalizePathForDisplay(p: string): string {
   if (!p) return '';
   return p.replace(/\\/g, '/').replace(/\/+$/, '');
+}
+
+function normalizeForConflictDetection(p: string): string {
+  if (p.startsWith('/') && !p.includes('\\')) {
+    const normalized = p.replace(/\/+$/, '');
+    return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
+  }
+  return normalizePathForComparison(p);
 }
 
 /**
@@ -40,10 +52,10 @@ export function findConflictingPath(
   newPath: string,
   existingPaths: string[]
 ): PathConflict | null {
-  const normalizedNew = normalizePathForComparison(newPath);
+  const normalizedNew = normalizeForConflictDetection(newPath);
 
   for (const existing of existingPaths) {
-    const normalizedExisting = normalizePathForComparison(existing);
+    const normalizedExisting = normalizeForConflictDetection(existing);
 
     // Check if new path is a child of existing (existing is parent)
     if (normalizedNew.startsWith(normalizedExisting + '/')) {
