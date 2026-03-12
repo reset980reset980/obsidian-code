@@ -1,6 +1,6 @@
 {
   "name": "claude-code-win",
-  "version": "1.4.20",
+  "version": "1.4.21",
   "description": "Windows-first Claude Code sidebar plugin for Obsidian",
   "main": "main.js",
   "scripts": {

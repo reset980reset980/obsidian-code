@@ -5,6 +5,7 @@
  */
 
 import * as fs from 'fs';
+import { spawn } from 'child_process';
 import type { App } from 'obsidian';
 import { Notice, PluginSettingTab, Setting } from 'obsidian';
 
@@ -48,6 +49,24 @@ function openHotkeySettings(app: App): void {
       }
     }
   }, 100);
+}
+
+function launchClaudeAuth(cliPath: string): void {
+  if (process.platform === 'win32') {
+    const escapedCliPath = cliPath.replace(/'/g, "''");
+    const command = `& '${escapedCliPath}' auth login`;
+    spawn('powershell.exe', ['-NoExit', '-Command', command], {
+      detached: true,
+      stdio: 'ignore',
+      windowsHide: false,
+    }).unref();
+    return;
+  }
+
+  spawn(cliPath, ['auth', 'login'], {
+    detached: true,
+    stdio: 'ignore',
+  }).unref();
 }
 
 /** Get the current hotkey string for a command, or null if not set. */
@@ -647,6 +666,30 @@ export class ObsidianCodeSettingTab extends PluginSettingTab {
             })
         );
     }
+
+    new Setting(containerEl)
+      .setName('Claude authentication')
+      .setDesc('Launch Claude CLI browser sign-in when your subscription session has expired.')
+      .addButton((button) =>
+        button
+          .setButtonText('Authenticate')
+          .setCta()
+          .onClick(() => {
+            const authCliPath = this.plugin.getResolvedClaudeCliPath();
+            if (!authCliPath) {
+              new Notice('Claude CLI not found. Check the CLI path setting first.');
+              return;
+            }
+
+            try {
+              launchClaudeAuth(authCliPath);
+              new Notice('Opened Claude authentication in a terminal window.');
+            } catch (error) {
+              const message = error instanceof Error ? error.message : String(error);
+              new Notice(`Failed to launch Claude authentication: ${message}`);
+            }
+          })
+      );
 
     // Create validation message element
     const validationEl = containerEl.createDiv({ cls: 'oc-cli-path-validation' });

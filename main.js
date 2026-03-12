@@ -38883,6 +38883,7 @@ var McpService = class {
 
 // src/features/settings/ObsidianCodeSettings.ts
 var fs11 = __toESM(require("fs"));
+var import_child_process4 = require("child_process");
 var import_obsidian27 = require("obsidian");
 
 // src/utils/claudeCli.ts
@@ -39541,6 +39542,22 @@ function openHotkeySettings(app) {
     }
   }, 100);
 }
+function launchClaudeAuth(cliPath) {
+  if (process.platform === "win32") {
+    const escapedCliPath = cliPath.replace(/'/g, "''");
+    const command = `& '${escapedCliPath}' auth login`;
+    (0, import_child_process4.spawn)("powershell.exe", ["-NoExit", "-Command", command], {
+      detached: true,
+      stdio: "ignore",
+      windowsHide: false
+    }).unref();
+    return;
+  }
+  (0, import_child_process4.spawn)(cliPath, ["auth", "login"], {
+    detached: true,
+    stdio: "ignore"
+  }).unref();
+}
 function getHotkeyForCommand(app, commandId) {
   var _a, _b;
   const hotkeyManager = app.hotkeyManager;
@@ -39894,6 +39911,22 @@ var ObsidianCodeSettingTab = class extends import_obsidian27.PluginSettingTab {
         })
       );
     }
+    new import_obsidian27.Setting(containerEl).setName("Claude authentication").setDesc("Launch Claude CLI browser sign-in when your subscription session has expired.").addButton(
+      (button) => button.setButtonText("Authenticate").setCta().onClick(() => {
+        const authCliPath = this.plugin.getResolvedClaudeCliPath();
+        if (!authCliPath) {
+          new import_obsidian27.Notice("Claude CLI not found. Check the CLI path setting first.");
+          return;
+        }
+        try {
+          launchClaudeAuth(authCliPath);
+          new import_obsidian27.Notice("Opened Claude authentication in a terminal window.");
+        } catch (error2) {
+          const message = error2 instanceof Error ? error2.message : String(error2);
+          new import_obsidian27.Notice(`Failed to launch Claude authentication: ${message}`);
+        }
+      })
+    );
     const validationEl = containerEl.createDiv({ cls: "oc-cli-path-validation" });
     validationEl.style.color = "var(--text-error)";
     validationEl.style.fontSize = "0.85em";
