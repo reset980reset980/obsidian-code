@@ -39546,10 +39546,11 @@ function launchClaudeAuth(cliPath) {
   if (process.platform === "win32") {
     const escapedCliPath = cliPath.replace(/'/g, "''");
     const command = `& '${escapedCliPath}' auth login`;
-    (0, import_child_process4.spawn)("powershell.exe", ["-NoExit", "-Command", command], {
+    const startCommand = `start "" powershell.exe -NoExit -Command "${command}"`;
+    (0, import_child_process4.spawn)("cmd.exe", ["/c", startCommand], {
       detached: true,
       stdio: "ignore",
-      windowsHide: false
+      windowsHide: true
     }).unref();
     return;
   }

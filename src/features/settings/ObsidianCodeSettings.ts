@@ -55,10 +55,11 @@ function launchClaudeAuth(cliPath: string): void {
   if (process.platform === 'win32') {
     const escapedCliPath = cliPath.replace(/'/g, "''");
     const command = `& '${escapedCliPath}' auth login`;
-    spawn('powershell.exe', ['-NoExit', '-Command', command], {
+    const startCommand = `start "" powershell.exe -NoExit -Command "${command}"`;
+    spawn('cmd.exe', ['/c', startCommand], {
       detached: true,
       stdio: 'ignore',
-      windowsHide: false,
+      windowsHide: true,
     }).unref();
     return;
   }
