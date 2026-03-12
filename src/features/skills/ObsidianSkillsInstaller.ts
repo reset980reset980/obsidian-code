@@ -310,6 +310,111 @@ Use the \`color\` property with values: \`1\`-\`6\` (preset colors) or hex codes
 - [Obsidian Canvas Documentation](https://help.obsidian.md/Plugins/Canvas)
 `;
 
+const OBSIDIAN_IDEA_TO_NOTE_SKILL = `---
+name: obsidian-idea-to-note
+description: Turn rough Obsidian-related ideas into a practical note, canvas plan, or project starter inside the user's vault. Use when the user has a vague idea, feature thought, workflow idea, plugin idea, note structure idea, or wants to quickly turn a thought into an actionable Obsidian artifact.
+---
+
+# Obsidian Idea To Note Skill
+
+Convert vague ideas into something the user can use immediately in Obsidian.
+
+## Default Output
+
+When the user shares a rough idea, produce:
+
+1. A clear title
+2. A short summary of the idea
+3. A suggested note location or filename
+4. A structured note body in Obsidian Markdown
+5. Next actions the user can execute immediately
+6. Optional related notes, tags, or canvas follow-ups if useful
+
+## Working Style
+
+- Prefer turning abstract thoughts into usable vault artifacts
+- Keep momentum high; do not over-analyze before drafting
+- Use Obsidian Markdown with headings, bullets, tasks, callouts, and wikilinks when helpful
+- If the user sounds exploratory, create a compact idea note first
+- If the user sounds implementation-focused, create an execution-oriented note with tasks
+- If the idea is highly visual, suggest a companion canvas structure
+
+## Suggested Note Shapes
+
+### Idea Capture
+
+\`\`\`markdown
+# Idea Title
+
+## Summary
+
+## Why It Matters
+
+## Core Concept
+
+## Possible Structure
+
+## Next Actions
+- [ ] First action
+- [ ] Second action
+\`\`\`
+
+### Project Starter
+
+\`\`\`markdown
+# Project Title
+
+## Goal
+
+## Scope
+
+## Inputs
+
+## Open Questions
+
+## Next Actions
+- [ ] Define deliverable
+- [ ] Create supporting notes
+- [ ] Start first draft
+\`\`\`
+
+### Obsidian Plugin or Workflow Idea
+
+\`\`\`markdown
+# Plugin or Workflow Idea
+
+## Problem
+
+## Proposed Flow
+
+## User Actions
+
+## Expected Outcome
+
+## Implementation Notes
+
+## Next Actions
+- [ ] Validate idea with one concrete use case
+- [ ] Draft command or UI flow
+- [ ] Create task breakdown
+\`\`\`
+
+## When Canvas Helps
+
+If the idea involves relationships, sequence, or clustering, suggest a canvas with:
+
+- one central node for the main idea
+- nearby nodes for inputs, outputs, blockers, and next actions
+- edges labeled with dependency or flow
+
+## Obsidian Conventions
+
+- Prefer short, reusable note titles
+- Suggest wikilinks when the user already references related concepts
+- Suggest tags only when they help retrieval
+- Keep frontmatter minimal unless the user already uses a metadata system
+`;
+
 /** Installed skill information */
 export interface InstalledSkill {
   name: string;
@@ -320,7 +425,7 @@ export interface InstalledSkill {
 }
 
 /** Built-in skill names (bundled with the plugin) */
-const BUILT_IN_SKILLS = ['obsidian-markdown', 'json-canvas'];
+const BUILT_IN_SKILLS = ['obsidian-markdown', 'json-canvas', 'obsidian-idea-to-note'];
 
 /** Check if obsidian skills are already installed */
 export function isObsidianSkillsInstalled(app: App): boolean {
@@ -452,10 +557,12 @@ export async function installObsidianSkills(app: App): Promise<boolean> {
     const skillsBasePath = path.join(vaultPath, '.claude', 'skills');
     const obsidianMarkdownPath = path.join(skillsBasePath, 'obsidian-markdown');
     const jsonCanvasPath = path.join(skillsBasePath, 'json-canvas');
+    const obsidianIdeaToNotePath = path.join(skillsBasePath, 'obsidian-idea-to-note');
 
     // Create skill directories
     fs.mkdirSync(obsidianMarkdownPath, { recursive: true });
     fs.mkdirSync(jsonCanvasPath, { recursive: true });
+    fs.mkdirSync(obsidianIdeaToNotePath, { recursive: true });
 
     // Write skill files
     fs.writeFileSync(
@@ -467,6 +574,12 @@ export async function installObsidianSkills(app: App): Promise<boolean> {
     fs.writeFileSync(
       path.join(jsonCanvasPath, 'SKILL.md'),
       JSON_CANVAS_SKILL,
+      'utf-8'
+    );
+
+    fs.writeFileSync(
+      path.join(obsidianIdeaToNotePath, 'SKILL.md'),
+      OBSIDIAN_IDEA_TO_NOTE_SKILL,
       'utf-8'
     );
 
@@ -491,6 +604,7 @@ export async function uninstallObsidianSkills(app: App): Promise<boolean> {
     const skillsBasePath = path.join(vaultPath, '.claude', 'skills');
     const obsidianMarkdownPath = path.join(skillsBasePath, 'obsidian-markdown');
     const jsonCanvasPath = path.join(skillsBasePath, 'json-canvas');
+    const obsidianIdeaToNotePath = path.join(skillsBasePath, 'obsidian-idea-to-note');
 
     // Remove skill directories
     if (fs.existsSync(obsidianMarkdownPath)) {
@@ -498,6 +612,9 @@ export async function uninstallObsidianSkills(app: App): Promise<boolean> {
     }
     if (fs.existsSync(jsonCanvasPath)) {
       fs.rmSync(jsonCanvasPath, { recursive: true });
+    }
+    if (fs.existsSync(obsidianIdeaToNotePath)) {
+      fs.rmSync(obsidianIdeaToNotePath, { recursive: true });
     }
 
     new Notice('Obsidian Skills removed');
