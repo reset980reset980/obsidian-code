@@ -174,5 +174,14 @@ export function* transformSDKMessage(
         yield { type: 'error', content: message.error };
       }
       break;
+
+    case 'auth_status': {
+      const output = Array.isArray(message.output) ? message.output.filter(Boolean).join('\n') : '';
+      const content = output || (message.isAuthenticating
+        ? 'Claude Code authentication in progress. Complete the browser sign-in if prompted.'
+        : 'Claude Code authentication required. Run `claude` or `claude auth login` in a terminal, then try again.');
+      yield { type: 'auth', content, isAuthenticating: message.isAuthenticating };
+      break;
+    }
   }
 }

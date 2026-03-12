@@ -102,6 +102,7 @@ export type StreamChunk =
   | { type: 'thinking'; content: string; parentToolUseId?: string | null }
   | { type: 'tool_use'; id: string; name: string; input: Record<string, unknown>; parentToolUseId?: string | null }
   | { type: 'tool_result'; id: string; content: string; isError?: boolean; parentToolUseId?: string | null }
+  | { type: 'auth'; content: string; isAuthenticating?: boolean }
   | { type: 'error'; content: string }
   | { type: 'blocked'; content: string }
   | { type: 'done' }

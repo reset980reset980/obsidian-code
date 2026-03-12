@@ -59,6 +59,10 @@ export function resolveClaudeCliPath(customPath: string | undefined, envText: st
     }
   }
 
+  return detectClaudeCliPath(envText);
+}
+
+export function detectClaudeCliPath(envText: string): string | null {
   const customEnv = parseEnvironmentVariables(envText || '');
   return findClaudeCLIPath(customEnv.PATH);
 }

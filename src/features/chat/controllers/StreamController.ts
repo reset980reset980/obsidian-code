@@ -147,6 +147,10 @@ export class StreamController {
         await this.appendText(`\n\n❌ **Error:** ${chunk.content}`);
         break;
 
+      case 'auth':
+        await this.appendText(`\n\n**Claude authentication:** ${chunk.content}`);
+        break;
+
       case 'done':
         break;
 

@@ -12,6 +12,7 @@ import { getCurrentPlatformKey } from '../../core/types';
 import { DEFAULT_CLAUDE_MODELS } from '../../core/types/models';
 import type ObsidianCodePlugin from '../../main';
 import { EnvSnippetManager, McpSettingsManager, SlashCommandSettings } from '../../ui';
+import { detectClaudeCliPath } from '../../utils/claudeCli';
 import { getModelsFromEnvironment, parseEnvironmentVariables } from '../../utils/env';
 import { expandHomePath } from '../../utils/path';
 import { buildNavMappingText, parseNavMappings } from './keyboardNavigation';
@@ -576,10 +577,10 @@ export class ObsidianCodeSettingTab extends PluginSettingTab {
 
     new Setting(containerEl)
       .setName('Custom variables')
-      .setDesc('Environment variables for Claude SDK (KEY=VALUE format, one per line)')
+      .setDesc('Optional environment variables for Claude SDK (KEY=VALUE format, one per line). Claude subscription users usually do not need ANTHROPIC_API_KEY here because Claude CLI browser login is used.')
       .addTextArea((text) => {
         text
-          .setPlaceholder('ANTHROPIC_API_KEY=your-key\nANTHROPIC_BASE_URL=https://api.example.com\nANTHROPIC_MODEL=custom-model')
+          .setPlaceholder('ANTHROPIC_BASE_URL=https://api.example.com\nANTHROPIC_MODEL=custom-model')
           .setValue(this.plugin.settings.environmentVariables)
           .onChange(async (value) => {
             await this.plugin.applyEnvironmentVariables(value);
@@ -599,11 +600,53 @@ export class ObsidianCodeSettingTab extends PluginSettingTab {
     const cliPathDescription = (process.platform === 'win32'
       ? 'Custom path to Claude Code CLI. Leave empty for auto-detection. For the native installer, use claude.exe. For npm/pnpm/yarn or other package manager installs, use the cli.js path (not claude.cmd).'
       : 'Custom path to Claude Code CLI. Leave empty for auto-detection. Paste the output of "which claude" — works for both native and npm/pnpm/yarn installs.')
-      + ' **Note: You must install the Claude Code CLI (`npm install -g @anthropic-ai/claude-code`) and run it once in your terminal to authenticate via browser.**';
+      + ' **Note: Subscription users should run `claude` or `claude auth login` once in a terminal and complete the browser sign-in.**';
 
     const cliPathSetting = new Setting(containerEl)
       .setName('Claude Code CLI path')
       .setDesc(cliPathDescription);
+
+    const detectedCliPath = detectClaudeCliPath(this.plugin.getActiveEnvironmentVariables());
+    const resolvedCliPath = this.plugin.getResolvedClaudeCliPath();
+
+    const detectedEl = containerEl.createDiv({ cls: 'oc-cli-path-detected' });
+    detectedEl.style.fontSize = '0.85em';
+    detectedEl.style.marginTop = '-0.5em';
+    detectedEl.style.marginBottom = '0.5em';
+    detectedEl.style.color = 'var(--text-muted)';
+    detectedEl.setText(
+      resolvedCliPath
+        ? `Current CLI: ${resolvedCliPath}${this.plugin.settings.claudeCliPath ? ' (custom)' : ' (auto-detected)'}`
+        : 'Current CLI: not detected'
+    );
+
+    if (detectedCliPath) {
+      new Setting(containerEl)
+        .setName('Auto-detected Claude CLI')
+        .setDesc(detectedCliPath)
+        .addButton((button) =>
+          button
+            .setButtonText('Use detected path')
+            .onClick(async () => {
+              this.plugin.settings.claudeCliPath = detectedCliPath;
+              await this.plugin.saveSettings();
+              this.plugin.cliResolver?.reset();
+              this.plugin.agentService?.cleanup();
+              this.display();
+            })
+        )
+        .addButton((button) =>
+          button
+            .setButtonText('Clear custom path')
+            .onClick(async () => {
+              this.plugin.settings.claudeCliPath = '';
+              await this.plugin.saveSettings();
+              this.plugin.cliResolver?.reset();
+              this.plugin.agentService?.cleanup();
+              this.display();
+            })
+        );
+    }
 
     // Create validation message element
     const validationEl = containerEl.createDiv({ cls: 'oc-cli-path-validation' });
@@ -631,9 +674,9 @@ export class ObsidianCodeSettingTab extends PluginSettingTab {
 
     cliPathSetting.addText((text) => {
       // Platform-aware placeholder
-      const placeholder = process.platform === 'win32'
-        ? 'D:\\nodejs\\node_global\\node_modules\\@anthropic-ai\\claude-code\\cli.js'
-        : '/usr/local/lib/node_modules/@anthropic-ai/claude-code/cli.js';
+      const placeholder = detectedCliPath || (process.platform === 'win32'
+        ? 'C:\\Users\\<you>\\.local\\bin\\claude.exe'
+        : '/usr/local/bin/claude');
       text
         .setPlaceholder(placeholder)
         .setValue(this.plugin.settings.claudeCliPath || '')

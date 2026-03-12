@@ -2050,6 +2050,22 @@ describe('ObsidianCodeService', () => {
       const chunks = Array.from(transformSDKMessage(sdkMessage));
       expect(chunks).toHaveLength(0);
     });
+
+    it('should surface auth status messages from the SDK', () => {
+      const sdkMessage: any = {
+        type: 'auth_status',
+        isAuthenticating: false,
+        output: ['Open the browser to continue sign-in.'],
+      };
+
+      const chunks = Array.from(transformSDKMessage(sdkMessage));
+      expect(chunks).toHaveLength(1);
+      expect(chunks[0]).toEqual({
+        type: 'auth',
+        content: 'Open the browser to continue sign-in.',
+        isAuthenticating: false,
+      });
+    });
   });
 
   describe('file hash hooks and diff data', () => {
